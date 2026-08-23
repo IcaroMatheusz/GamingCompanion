@@ -1,6 +1,7 @@
 import MainLayout from "../components/MainLayout";
 import GameList from "../components/GameList";
 import SearchBar from "../components/SearchBar"
+import Footer from "../components/Footer";
 
 function Dashboard() {
   return (
@@ -12,6 +13,8 @@ function Dashboard() {
           <GameList />
 
       </MainLayout>
+
+      <Footer/>
     </>
   );
 }
