@@ -7,7 +7,7 @@ import SearchBar from "./components/SearchBar";
 function App() {
   return (
     <>
-      <div className="min-h-screen bg-gray-8000 flex flex-col">
+      <div className="min-h-screen  bg-gray-9000 flex flex-col">
         <Header />
 
         <main className="mt-30 flex flex-col items-center justify-center">

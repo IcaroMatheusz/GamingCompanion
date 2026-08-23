@@ -1,21 +1,12 @@
-function GameCard( {title, description, img, alt } ) {
+function GameCard({ title, description, img, alt }) {
   return (
-    <div className="card bg-base-100 w-96 shadow-sm">
+    <div className="card bg-base-100 w-64 shadow-md hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300">
       <figure>
-        <img
-          src={img}
-          alt={alt}
-          className="w-full h-64 object-cover"
-        />
+        <img src={img} alt={alt} className="w-full h-auto object-cover" />
       </figure>
       <div className="card-body">
         <h2 className="card-title">{title}</h2>
-        <p>
-          {description}
-        </p>
-        <div className="card-actions justify-end">
-          <button className="btn btn-primary">Buy Now</button>
-        </div>
+        <p>{description}</p>
       </div>
     </div>
   );
