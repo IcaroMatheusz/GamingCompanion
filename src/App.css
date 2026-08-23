@@ -1,0 +1,5 @@
+@import "tailwindcss";
+/*noinspection CssUnknownAtRule*/
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark, cupcake, retro;
+} 
