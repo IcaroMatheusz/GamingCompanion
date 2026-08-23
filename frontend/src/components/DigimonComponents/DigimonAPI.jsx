@@ -4,36 +4,39 @@ import { fetchDigimon } from "../../services/fetchDigimon";
 function DigimonAPI() {
   const [digimon, setDigimon] = useState(null);
   const [search, setSearch] = useState("");
+  const [error, setError] = useState("")
+
 
   async function handleSearch() {
     try {
       const data = await fetchDigimon(search);
-
-
       console.log(data)
       setDigimon(data);
     } catch (err) {
       console.log(err);
       setDigimon(null);
-      alert("Digimon não encontrado");
+      setError("Digimon não encontrado");
     }
   }
 
   return (
     <>
       <div className="card bg-base-100 w-64 shadow-sm hover:shadow-md transition-all transition-200s gap-3">
+
+        <h1 className="text-red-500">{error}</h1>
+
         {digimon && (
           <div className="card-body">
             <figure>
               <img
-                src={digimon.images.0.href}
+                src={digimon.images[0].href}
                 alt={digimon.name}
-                className="w-full h-auto object-cover"
+                className="w-full h-auto object-cover rounded-2xl shadow-md"
               />
             </figure>
 
             <h2 className="card-title">{digimon.name}</h2>
-            <p></p>
+            <p className="tex">Type: {digimon.types[0].type}</p>
           </div>
         )}
 
@@ -60,7 +63,10 @@ function DigimonAPI() {
               className="grow"
               placeholder="Buscar Digimon"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setError("")
+                setSearch(e.target.value)
+            }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   handleSearch();
