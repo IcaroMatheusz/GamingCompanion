@@ -41,7 +41,7 @@ function Digimon() {
           <div className="flex flex-col items-center gap-2 m-4">
             <h1>Tempo atual de jogo:</h1>
             <p className="font-bold bg-base-200 p-4 rounded-2xl">
-              {hours} hora e {minutes} minutos
+              {hours} horas e {minutes} minutos
             </p>
 
             <h2>Nome do Jogador: </h2>

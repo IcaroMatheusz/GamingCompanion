@@ -10,7 +10,7 @@ function DigimonAPI({ autoSearch }) {
 
   async function handleSearch() {
     try {
-      const data = await fetchDigimon(term ?? search);
+      const data = await fetchDigimon(search);
       setDigimon(data);
       setError("");
     // eslint-disable-next-line no-unused-vars
