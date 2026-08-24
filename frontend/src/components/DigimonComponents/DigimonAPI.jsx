@@ -1,28 +1,36 @@
+/* eslint-disable no-undef */
 import { useState } from "react";
 import { fetchDigimon } from "../../services/fetchDigimon";
+import { useEffect } from "react";
 
-function DigimonAPI() {
+function DigimonAPI({ autoSearch }) {
   const [digimon, setDigimon] = useState(null);
   const [search, setSearch] = useState("");
-  const [error, setError] = useState("")
-
+  const [error, setError] = useState("");
 
   async function handleSearch() {
     try {
-      const data = await fetchDigimon(search);
-      console.log(data)
+      const data = await fetchDigimon(term ?? search);
       setDigimon(data);
+      setError("");
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
-      console.log(err);
       setDigimon(null);
       setError("Digimon não encontrado");
     }
   }
 
+  useEffect(() => {
+    if (autoSearch) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSearch(autoSearch);
+      handleSearch(autoSearch);
+    }
+  }, [autoSearch]);
+
   return (
     <>
       <div className="card bg-base-100 w-64 shadow-sm hover:shadow-md transition-all transition-200s gap-3">
-
         <h1 className="text-red-500">{error}</h1>
 
         {digimon && (
@@ -64,9 +72,9 @@ function DigimonAPI() {
               placeholder="Buscar Digimon"
               value={search}
               onChange={(e) => {
-                setError("")
-                setSearch(e.target.value)
-            }}
+                setError("");
+                setSearch(e.target.value);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   handleSearch();

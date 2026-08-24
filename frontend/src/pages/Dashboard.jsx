@@ -1,20 +1,22 @@
 import MainLayout from "../components/MainLayout";
 import GameList from "../components/GameList";
-import SearchBar from "../components/SearchBar"
+import SearchBar from "../components/SearchBar";
 import Footer from "../components/Footer";
 
 function Dashboard() {
+  
+
+
   return (
     <>
       <MainLayout>
 
-          <SearchBar />
+        <SearchBar />
 
-          <GameList />
-
+        <GameList />
       </MainLayout>
 
-      <Footer/>
+      <Footer />
     </>
   );
 }
