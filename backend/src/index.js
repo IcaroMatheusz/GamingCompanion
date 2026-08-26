@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const { decryptSave } = require("./saveDecryptor");
-const { readRoster, dumpStrings } = require("./saveRoster");
+const { readRoster, dumpStrings, calibrateLevelOffset } = require("./saveRoster");
 
 const app = express();
 const upload = multer();
@@ -20,6 +20,13 @@ app.get("/api/status", (req, res) => {
   });
 });
 
+function parseBraceArray(str) {
+  return str
+    .replace(/[{}]/g, "")
+    .split("|")
+    .map((s) => parseInt(s.trim(), 10));
+}
+
 app.post("/api/save/upload", upload.single("saveFile"), (req, res) => {
   console.log(
     "Upload recebido, arquivo:",
@@ -31,10 +38,13 @@ app.post("/api/save/upload", upload.single("saveFile"), (req, res) => {
     const strings = dumpStrings(decrypted, 0x001000, 0x009000);
     const nullIndex = decrypted.indexOf(0);
     const headerText = decrypted.toString("ascii", 0, nullIndex);
-    const normalized = headerText.replace(/\{[^}]*\}/g, (match) => match.replace(/,/g, "|"));
-    const fields = normalized.split(",").map(f => f.trim());
+    const normalized = headerText.replace(/\{[^}]*\}/g, (match) =>
+      match.replace(/,/g, "|"),
+    );
+    const fields = normalized.split(",").map((f) => f.trim());
 
-    const roster = readRoster(decrypted);
+    const roster = readRoster(decrypted); 
+    calibrateLevelOffset(decrypted, roster);
 
     const saveInfo = {
       playerName: fields[4],
@@ -49,6 +59,15 @@ app.post("/api/save/upload", upload.single("saveFile"), (req, res) => {
       capturedCount: roster.length,
       lastCaptured: roster[roster.length - 1]?.name ?? null,
     };
+
+    const partyLevels = parseBraceArray(fields[9]); // ex: [4, 3, 4]
+    const currentParty = roster.slice(0, partyLevels.length);
+
+    console.log("Níveis no header:", partyLevels);
+    console.log(
+      "Níveis no roster:",
+      currentParty.map((d) => d.level),
+    );
 
     console.log(saveInfo);
     console.log(roster);

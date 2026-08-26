@@ -6,17 +6,18 @@ function isPrintableAscii(buf) {
   return [...buf].every(b => b >= 0x20 && b <= 0x7e);
 }
 
+function looksLikeNameAt(decrypted, nameOffset) {
+  const nameEnd = decrypted.indexOf(0, nameOffset);
+  if (nameEnd <= nameOffset || nameEnd - nameOffset < 2 || nameEnd - nameOffset > 32) return false;
+  return isPrintableAscii(decrypted.subarray(nameOffset, nameEnd));
+}
+
 function findEntryBase(decrypted) {
-  for (let base = PARTY_BOX_START; base < PARTY_BOX_START + STRIDE; base += 4) {
-    const nameOffset = base + 4;
-    const nameEnd = decrypted.indexOf(0, nameOffset);
-    if (nameEnd <= nameOffset || nameEnd - nameOffset > 32) continue;
-
-    const nameBytes = decrypted.subarray(nameOffset, nameEnd);
-    if (nameBytes.length < 2 || !isPrintableAscii(nameBytes)) continue;
-
-    const level = decrypted.readInt32LE(nameOffset + 0x60);
-    if (level >= 1 && level <= 99) return base;
+  for (let candidate = PARTY_BOX_START; candidate < PARTY_BOX_END; candidate += 4) {
+    const nameOffset = candidate + 4;
+    if (!looksLikeNameAt(decrypted, nameOffset)) continue;
+    if (!looksLikeNameAt(decrypted, nameOffset + STRIDE)) continue;
+    return candidate; 
   }
   return null;
 }
@@ -28,18 +29,30 @@ function readRoster(decrypted) {
   const entries = [];
   for (let off = base; off < PARTY_BOX_END; off += STRIDE) {
     const nameOffset = off + 4;
-    const active = decrypted.readUInt32LE(nameOffset + 0x140);
-    if (active !== 1) break;
+    if (!looksLikeNameAt(decrypted, nameOffset)) break;
 
     const nameEnd = decrypted.indexOf(0, nameOffset);
     const name = decrypted.toString("ascii", nameOffset, nameEnd);
     const dbId = decrypted.readUInt32LE(off);
+    const level = decrypted.readInt32LE(nameOffset + 0x60);
 
-    entries.push({ name, dbId });
+    entries.push({ name, dbId, level, entryOffset: off });
   }
 
   return entries;
 }
+
+function calibrateLevelOffset(decrypted, entries) {
+  for (let offset = -0x10; offset < STRIDE; offset += 4) {
+    const levels = entries.map(e => decrypted.readInt32LE(e.entryOffset + 4 + offset));
+    const allPlausible = levels.every(l => l >= 1 && l <= 99);
+    if (allPlausible) {
+      console.log(`offset 0x${offset.toString(16)} ->`, levels);
+    }
+  }
+}
+
+
 
 function dumpStrings(buffer, start, end, minLength = 3) {
   const found = [];
@@ -64,4 +77,4 @@ function dumpStrings(buffer, start, end, minLength = 3) {
   return found;
 }
 
-module.exports = { readRoster, dumpStrings };
+module.exports = { readRoster, dumpStrings, calibrateLevelOffset };
