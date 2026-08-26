@@ -28,23 +28,19 @@ function parseBraceArray(str) {
 }
 
 app.post("/api/save/upload", upload.single("saveFile"), (req, res) => {
-  console.log(
-    "Upload recebido, arquivo:",
-    req.file?.originalname,
-    req.file?.size,
-  );
   try {
     const decrypted = decryptSave(req.file.buffer);
-    const strings = dumpStrings(decrypted, 0x001000, 0x009000);
+
     const nullIndex = decrypted.indexOf(0);
     const headerText = decrypted.toString("ascii", 0, nullIndex);
     const normalized = headerText.replace(/\{[^}]*\}/g, (match) =>
-      match.replace(/,/g, "|"),
+      match.replace(/,/g, "|")
     );
     const fields = normalized.split(",").map((f) => f.trim());
 
-    const roster = readRoster(decrypted); 
-    calibrateLevelOffset(decrypted, roster);
+    const roster = readRoster(decrypted);
+    const partyLevels = parseBraceArray(fields[9]);
+    const currentParty = roster.slice(0, partyLevels.length);
 
     const saveInfo = {
       playerName: fields[4],
@@ -58,23 +54,29 @@ app.post("/api/save/upload", upload.single("saveFile"), (req, res) => {
       },
       capturedCount: roster.length,
       lastCaptured: roster[roster.length - 1]?.name ?? null,
+      currentParty: currentParty.map((d) => ({
+        name: d.name,
+        level: d.level,
+        dbId: d.dbId,
+      })),
     };
 
-    const partyLevels = parseBraceArray(fields[9]); // ex: [4, 3, 4]
-    const currentParty = roster.slice(0, partyLevels.length);
-
-    console.log("Níveis no header:", partyLevels);
-    console.log(
-      "Níveis no roster:",
-      currentParty.map((d) => d.level),
-    );
-
-    console.log(saveInfo);
-    console.log(roster);
-    console.log(strings);
-    res.json({ ok: true, saveInfo, roster });
+    res.json({ ok: true, saveInfo });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+app.get("/api/digimon/:name", async (req, res) => {
+  try {
+    const response = await fetch(`https://digi-api.com/api/v1/digimon/${req.params.name}`);
+    if (!response.ok) {
+      return res.status(response.status).json({ error: "Digimon não encontrado" });
+    }
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -1,9 +1,9 @@
-const API_URL = "https://digi-api.com/api/v1";
+
 
 export async function fetchDigimon(digimon) {
 
     try {
-        const response = await fetch(`${API_URL}/digimon/${digimon}`)
+        const response = await fetch(`http://localhost:3000/api/digimon/${digimon}`);
 
         if (!response.ok) {
             throw new Error("Digimon não encontrado")

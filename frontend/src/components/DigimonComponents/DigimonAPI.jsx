@@ -8,25 +8,25 @@ function DigimonAPI({ autoSearch }) {
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
 
-  async function handleSearch() {
-    try {
-      const data = await fetchDigimon(search);
-      setDigimon(data);
-      setError("");
-    // eslint-disable-next-line no-unused-vars
-    } catch (err) {
-      setDigimon(null);
-      setError("Digimon não encontrado");
-    }
+async function handleSearch(term) {
+  try {
+    const data = await fetchDigimon(term ?? search);
+    setDigimon(data);
+    setError("");
+  } catch (err) {
+    console.log(err)
+    setDigimon(null);
+    setError("Digimon não encontrado");
   }
+}
 
-  useEffect(() => {
-    if (autoSearch) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSearch(autoSearch);
-      handleSearch(autoSearch);
-    }
-  }, [autoSearch]);
+useEffect(() => {
+  if (autoSearch) {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSearch(autoSearch);
+    handleSearch(autoSearch); // agora usa o valor direto, não depende do state
+  }
+}, [autoSearch]);
 
   return (
     <>

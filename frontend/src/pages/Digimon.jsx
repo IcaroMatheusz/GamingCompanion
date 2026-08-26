@@ -2,26 +2,43 @@ import GameMainLayout from "../components/GamePageComponents/GameMainLayout";
 import DigimonAPI from "../components/DigimonComponents/DigimonAPI";
 import DigimonRadialProgress from "../components/DigimonComponents/DigimonRadialProgress";
 import { useState } from "react";
+import { useEffect } from "react";
 
 function Digimon() {
   const [saveInfo, setSaveInfo] = useState(null);
+  const [fileHandle, setFileHandle] = useState(null);
 
-  async function handleFileChange(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("saveFile", file);
-
-    const response = await fetch("http://localhost:3000/api/save/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await response.json();
-    console.log(data);
-    setSaveInfo(data.saveInfo);
+  async function handleSelectFile() {
+    try {
+      const [handle] = await window.showOpenFilePicker();
+      setFileHandle(handle);
+    } catch (error) {
+      console.log(error);
+    }
   }
+
+  useEffect(() => {
+    if (!fileHandle) return;
+
+    async function readAndUpload() {
+      const file = await fileHandle.getFile(); // sempre pega o conteúdo mais recente do disco
+      const formData = new FormData();
+      formData.append("saveFile", file);
+
+      const response = await fetch("http://localhost:3000/api/save/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      setSaveInfo(data.saveInfo);
+    }
+
+    readAndUpload(); // já lê uma vez na hora
+    const interval = setInterval(readAndUpload, 2000);
+
+    return () => clearInterval(interval); // limpa o intervalo se trocar de arquivo/sair da página
+  }, [fileHandle]);
 
   const totalSeconds = saveInfo?.playTimeSeconds ?? 0;
   const hours = Math.floor(totalSeconds / 3600);
@@ -31,11 +48,9 @@ function Digimon() {
     <>
       <GameMainLayout>
         <h1 className="text-2xl font-bold m-4">Carregar o save</h1>
-        <input
-          type="file"
-          className="file-input file-input-md"
-          onChange={handleFileChange}
-        />
+        <button className="btn" onClick={handleSelectFile}>
+          Escolher arquivo
+        </button>
 
         {saveInfo && (
           <div className="flex flex-col items-center gap-2 m-4">
@@ -54,7 +69,7 @@ function Digimon() {
         <div className="flex justify-around mt-10 gap-50">
           <div className="flex flex-col gap-10">
             <h1 className="text-xl font-bold">Último Digimon Capturado:</h1>
-            <DigimonAPI autoSearch={saveInfo?.lastCapturedName} />
+            <DigimonAPI autoSearch={saveInfo?.lastCaptured} />
           </div>
 
           <div className="flex flex-col gap-10">
